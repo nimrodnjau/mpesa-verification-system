@@ -20,11 +20,20 @@ venv.bak/
 instance/
 .webassets-cache
 
-# Environment Variables - Important!
+# Environment Variables - ALL .env files
 .env
 .flaskenv
 .env.local
 .env.*.local
+
+# Backend
+mpesa-backend/.env
+mpesa-backend/.flaskenv
+
+# Frontend
+mpesa-frontend/.env
+mpesa-frontend/.env.local
+mpesa-frontend/.env.*.local
 
 # Database
 *.db
@@ -47,7 +56,6 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
-.cache
 
 # Node.js / React
 node_modules/
@@ -56,10 +64,7 @@ yarn-debug.log*
 yarn-error.log*
 /build/
 /dist/
-
-# Temporary files
-*.tmp
-*.temp
+*.tsbuildinfo
 
 # OS files
 Thumbs.db

@@ -6,7 +6,7 @@ class Transaction(db.Model):
     __tablename__ = 'transactions'
 
     transaction_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     business_id = db.Column(db.Integer, db.ForeignKey('businesses.business_id'), nullable=True)
     transaction_cd = db.Column(db.String(50), unique=True, nullable=False)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
