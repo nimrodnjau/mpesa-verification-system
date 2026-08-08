@@ -34,63 +34,37 @@ const Navbar = () => {
                 </Link>
                 
                 <div className="flex items-center gap-4">
-                    {user ? (
+                        {user ? (
+                            <>
+                    <Link to="/dashboard" className="text-sm">Dashboard</Link>
+                    <Link to="/verify" className="text-sm">Verify</Link>
+                    <Link to="/history" className="text-sm">History</Link>
+                    
+                    {/* ✅ Only show business links if user is BUSINESS */}
+                    {user.role === 'business' && (
                         <>
-                            <Link to="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
-                                Dashboard
-                            </Link>
-                            <Link to="/verify" className="text-sm text-gray-600 hover:text-gray-900">
-                                Verify
-                            </Link>
-                            <Link to="/history" className="text-sm text-gray-600 hover:text-gray-900">
-                                History
-                            </Link>
-                            
-                            {/* ✅ Business links - only if role is business or admin */}
-                            {(user.role === 'business' || user.role === 'admin') && (
-                                <>
-                                    <Link to="/business" className="text-sm text-gray-600 hover:text-gray-900">
-                                        Business
-                                    </Link>
-                                    <Link to="/invoices" className="text-sm text-gray-600 hover:text-gray-900">
-                                        Invoices
-                                    </Link>
-                                    <Link to="/reports" className="text-sm text-gray-600 hover:text-gray-900">
-                                        Reports
-                                    </Link>
-                                </>
-                            )}
-                            
-                            {/* ✅ Admin links - only if role is admin */}
-                            {user.role === 'admin' && (
-                                <Link to="/admin" className="text-sm text-red-600 hover:text-red-800 font-medium">
-                                    Admin
-                                </Link>
-                            )}
-                            
-                            <Link to="/profile" className="text-sm text-gray-600 hover:text-gray-900">
-                                👤 {user.first_name}
-                            </Link>
-                            
-                            {getRoleBadge()}
-                            
-                            <button
-                                onClick={handleLogout}
-                                className="text-sm text-red-600 hover:text-red-800"
-                            >
-                                Logout
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <Link to="/login" className="text-sm text-blue-600 hover:text-blue-800">
-                                Login
-                            </Link>
-                            <Link to="/register" className="text-sm bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-                                Register
-                            </Link>
+                            <Link to="/business" className="text-sm font-medium text-green-600">Business</Link>
+                            <Link to="/invoices" className="text-sm">Invoices</Link>
+                            <Link to="/reports" className="text-sm">Reports</Link>
+                            <Link to="/webhook-settings" className="text-sm">Webhooks</Link>
                         </>
                     )}
+                    
+                    {/* ✅ Only show admin links if user is ADMIN */}
+                    {user.role === 'admin' && (
+                        <Link to="/admin" className="text-sm text-red-600 font-medium">Admin</Link>
+                    )}
+                    
+                    <Link to="/profile" className="text-sm">👤 {user.first_name}</Link>
+                    <button onClick={handleLogout} className="text-sm text-red-600">Logout</button>
+                </>
+            ) : (
+                <>
+                    <Link to="/login" className="text-sm">Login</Link>
+                    <Link to="/register" className="text-sm bg-blue-600 text-white px-4 py-2 rounded">Register</Link>
+                </>
+            )}
+                    
                 </div>
             </div>
         </nav>

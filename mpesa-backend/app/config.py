@@ -12,6 +12,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///mpesa.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+
     # CORS
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173').split(',')
 

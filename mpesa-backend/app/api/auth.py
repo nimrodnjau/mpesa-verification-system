@@ -26,6 +26,12 @@ def register():
         if User.query.filter_by(phone_number=data['phone_number']).first():
             return jsonify({'error': 'Phone number already registered'}), 409
 
+        # ✅ Check if business name exists (if role is business)
+        if data.get('role') == 'business' and data.get('business_data'):
+            business_name = data['business_data'].get('business_name')
+            if Business.query.filter_by(business_name=business_name).first():
+                return jsonify({'error': 'Business name already registered'}), 409
+
         # Create user
         user = User(
             first_name=data['first_name'],
@@ -40,6 +46,21 @@ def register():
         db.session.add(user)
         db.session.commit()
 
+         # ✅ If role is 'business', create BUSINESS record
+        business = None
+        if user.role == 'business' and data.get('business_data'):
+            business_data = data['business_data']
+            business = Business(
+                owner_user_id=user.user_id,  # Link to user account
+                business_name=business_data.get('business_name'),
+                location=business_data.get('location'),
+                paybill_number=business_data.get('paybill_number'),
+                till_number=business_data.get('till_number'),
+                status='pending'
+            )
+            db.session.add(business)
+            db.session.commit()
+
         # Create audit log
         AuditLog.log_action(
             user_id=user.user_id,
@@ -48,9 +69,9 @@ def register():
             ip_address=request.remote_addr
         )
 
-        # Generate tokens
-        access_token = create_access_token(identity=user.user_id)
-        refresh_token = create_refresh_token(identity=user.user_id)
+        # Generate tokens (Convert ID to string for JWT compatibility)
+        access_token = create_access_token(identity=str(user.user_id))
+        refresh_token = create_refresh_token(identity=str(user.user_id))
 
         return jsonify({
             'message': 'User registered successfully',
@@ -81,9 +102,9 @@ def login():
         if not user.is_active:
             return jsonify({'error': 'Account is deactivated'}), 401
 
-        # Generate tokens
-        access_token = create_access_token(identity=user.user_id)
-        refresh_token = create_refresh_token(identity=user.user_id)
+        # Generate tokens (Convert ID to string for JWT compatibility)
+        access_token = create_access_token(identity=str(user.user_id))
+        refresh_token = create_refresh_token(identity=str(user.user_id))
 
         # Log login
         AuditLog.log_action(
@@ -110,7 +131,7 @@ def login():
 def refresh():
     try:
         current_user_id = get_jwt_identity()
-        access_token = create_access_token(identity=current_user_id)
+        access_token = create_access_token(identity=str(current_user_id))
 
         return jsonify({
             'access_token': access_token

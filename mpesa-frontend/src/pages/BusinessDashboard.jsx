@@ -1,41 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const BusinessDashboard = () => {
-    const { getBusinessDashboard, user } = useAuth();
+    const { user } = useAuth();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetchDashboard();
+        fetchBusinessData();
     }, []);
 
-    const fetchDashboard = async () => {
-        setLoading(true);
-        const response = await getBusinessDashboard();
-        if (response.success) {
+    const fetchBusinessData = async () => {
+        try {
+            const response = await api.get('/business/dashboard');
             setData(response.data);
-        } else {
-            setError(response.error);
+        } catch (error) {
+            console.error('Failed to fetch business data', error);
         }
         setLoading(false);
     };
 
     if (loading) {
-        return <div className="text-center py-12 text-gray-500">Loading dashboard...</div>;
-    }
-
-    if (error) {
-        return (
-            <div className="text-center py-12">
-                <p className="text-red-500">{error}</p>
-                <Link to="/business/register" className="text-blue-600 hover:underline mt-2 inline-block">
-                    Register your business →
-                </Link>
-            </div>
-        );
+        return <div className="text-center py-12">Loading business dashboard...</div>;
     }
 
     const stats = data?.stats || { today: 0, total: 0, pending: 0, webhook_count: 0 };
@@ -45,23 +33,9 @@ const BusinessDashboard = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">🏢 Business Dashboard</h1>
-                <div className="flex gap-2">
-                    <Link to="/business/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
-                        ⚙️ Edit
-                    </Link>
-                    <Link to="/webhook-settings" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
-                        🔔 Webhook Settings
-                    </Link>
-                </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
-                <p className="text-sm text-green-600 font-medium">
-                    ✅ Payments are auto-verified via webhook — no manual entry needed!
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                    Business: {data?.business?.business_name || 'Not set'} | {data?.business?.status || 'pending'}
-                </p>
+                <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                    {data?.business?.status || 'Pending'}
+                </span>
             </div>
 
             {/* Stats Cards */}
@@ -84,51 +58,46 @@ const BusinessDashboard = () => {
                 </div>
             </div>
 
-            {/* Recent Transactions */}
+            {/* Business Actions */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <Link to="/verify" className="bg-green-600 text-white p-4 rounded-lg shadow hover:bg-green-700 transition text-center">
+                    <div className="text-3xl mb-1">💳</div>
+                    <p className="text-sm font-medium">Verify Payment</p>
+                </Link>
+                <Link to="/invoices" className="bg-blue-600 text-white p-4 rounded-lg shadow hover:bg-blue-700 transition text-center">
+                    <div className="text-3xl mb-1">📄</div>
+                    <p className="text-sm font-medium">Invoices</p>
+                </Link>
+                <Link to="/reports" className="bg-orange-600 text-white p-4 rounded-lg shadow hover:bg-orange-700 transition text-center">
+                    <div className="text-3xl mb-1">📊</div>
+                    <p className="text-sm font-medium">Reports</p>
+                </Link>
+                <Link to="/webhook-settings" className="bg-indigo-600 text-white p-4 rounded-lg shadow hover:bg-indigo-700 transition text-center">
+                    <div className="text-3xl mb-1">🔔</div>
+                    <p className="text-sm font-medium">Webhook Settings</p>
+                </Link>
+            </div>
+
+            {/* Recent Payments */}
             <div className="bg-white p-6 rounded-lg shadow-sm border">
                 <h2 className="text-lg font-bold mb-4">📋 Recent Payments</h2>
-                
                 {transactions.length === 0 ? (
-                    <div className="text-center py-8">
-                        <p className="text-gray-400 text-4xl mb-2">📭</p>
-                        <p className="text-gray-500">No payments received yet</p>
-                        <p className="text-sm text-gray-400 mt-1">Payments will auto-appear when customers pay</p>
-                    </div>
+                    <p className="text-gray-500 text-center py-4">No payments received yet</p>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                                {transactions.slice(0, 10).map((txn) => (
-                                    <tr key={txn.transaction_id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-2 font-mono text-sm">{txn.transaction_cd}</td>
-                                        <td className="px-4 py-2">{txn.phone_number}</td>
-                                        <td className="px-4 py-2 font-bold">KES {txn.amount}</td>
-                                        <td className="px-4 py-2">
-                                            <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
-                                                ✅ Verified
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-2 text-sm">
-                                            {txn.verification_source === 'webhook' ? '🤖 Auto' : '👤 Manual'}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-500">
-                                            {new Date(txn.timestamp).toLocaleTimeString()}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    transactions.slice(0, 10).map((txn) => (
+                        <div key={txn.transaction_id} className="flex justify-between items-center border-b py-2">
+                            <div>
+                                <p className="font-mono text-sm">{txn.transaction_cd}</p>
+                                <p className="text-sm text-gray-500">{txn.phone_number}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-bold">KES {txn.amount}</p>
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                    {txn.status}
+                                </span>
+                            </div>
+                        </div>
+                    ))
                 )}
             </div>
         </div>
